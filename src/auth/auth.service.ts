@@ -49,6 +49,7 @@ export class AuthService {
       userId: dto.userId,
       token: accessToken,
       expiresAt: new Date(Date.now() + 3600000),
+      loginResponse: null,
     });
 
     await tokenEntity.save();
