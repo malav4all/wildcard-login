@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as jwt from 'jsonwebtoken'; // Import jsonwebtoken library
@@ -20,10 +20,9 @@ export class AuthService {
     expiresIn: number;
     message?: string;
   }> {
-    // Check if a valid (non-expired) token already exists for the user
     const existingToken = await this.accessTokenModel.findOne({
       userId: dto.userId,
-      expiresAt: { $gt: new Date() }, // Check if token is still valid
+      expiresAt: { $gt: new Date() },
     });
 
     if (existingToken) {
@@ -32,19 +31,16 @@ export class AuthService {
         userId: dto.userId,
         expiresIn: Math.floor(
           (existingToken.expiresAt.getTime() - Date.now()) / 1000,
-        ), // Remaining expiry time in seconds
+        ),
         message: 'Existing valid token returned',
       };
     }
 
-    // Create JWT payload
     const payload = { sub: dto.userId };
 
     const accessToken = jwt.sign(payload, this.JWT_SECRET, {
       expiresIn: '1h',
     });
-
-    // Create access token entity
     const tokenEntity = new this.accessTokenModel({
       userId: dto.userId,
       token: accessToken,
@@ -64,10 +60,7 @@ export class AuthService {
 
   async validateToken(token: string): Promise<boolean> {
     try {
-      // Verify JWT token
       const decoded = jwt.verify(token, this.JWT_SECRET) as { sub: string };
-
-      // Check if token exists in database and is not expired
       const storedToken = await this.accessTokenModel.findOne({
         token,
         userId: decoded.sub,
@@ -78,5 +71,20 @@ export class AuthService {
     } catch (error) {
       return false;
     }
+  }
+
+  async getAccessToken(userId: string): Promise<AccessToken> {
+    const tokenData = await this.accessTokenModel
+      .findOne({
+        userId,
+        expiresAt: { $gt: new Date() },
+      })
+      .sort({ createdAt: -1 });
+
+    if (!tokenData) {
+      throw new NotFoundException('No valid token found for this user');
+    }
+
+    return tokenData;
   }
 }

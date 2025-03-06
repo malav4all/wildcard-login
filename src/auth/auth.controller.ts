@@ -7,9 +7,13 @@ import {
   ValidationPipe,
   InternalServerErrorException,
   BadRequestException,
+  Get,
+  Param,
+  NotFoundException,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { TokenGenerationDto } from './dto/token-generation.dto';
+import { AccessToken } from './schemas/access-token.schema';
 
 @Controller('auth')
 export class AuthController {
@@ -25,6 +29,20 @@ export class AuthController {
         throw new BadRequestException('Invalid input data');
       }
       throw new InternalServerErrorException('Failed to generate access token');
+    }
+  }
+
+  @Get('token/:userId')
+  async getAccessToken(@Param('userId') userId: string): Promise<AccessToken> {
+    try {
+      return await this.authService.getAccessToken(userId);
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException('No valid token found for this user');
+      }
+      throw new InternalServerErrorException(
+        'Something went wrong while fetching the token',
+      );
     }
   }
 }
