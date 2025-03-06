@@ -9,7 +9,7 @@ export class AccessToken extends Document {
   @Prop({ required: true })
   token: string;
 
-  @Prop({ type: Object, default: {} }) s;
+  @Prop({ type: Object, default: {} })
   loginResponse: Record<string, any>;
 
   @Prop({ required: true })
