@@ -7,8 +7,6 @@ import {
   ValidationPipe,
   InternalServerErrorException,
   BadRequestException,
-  Get,
-  Param,
   NotFoundException,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
@@ -33,6 +31,7 @@ export class AuthController {
   }
 
   @Post('token')
+  @HttpCode(HttpStatus.OK)
   async getAccessToken(@Body('userId') userId: string): Promise<AccessToken> {
     try {
       if (!userId) {
