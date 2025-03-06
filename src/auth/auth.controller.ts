@@ -32,9 +32,12 @@ export class AuthController {
     }
   }
 
-  @Get('token/:userId')
-  async getAccessToken(@Param('userId') userId: string): Promise<AccessToken> {
+  @Post('token')
+  async getAccessToken(@Body('userId') userId: string): Promise<AccessToken> {
     try {
+      if (!userId) {
+        throw new NotFoundException('User ID is required');
+      }
       return await this.authService.getAccessToken(userId);
     } catch (error) {
       if (error instanceof NotFoundException) {

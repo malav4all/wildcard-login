@@ -17,7 +17,6 @@ export class AuthService {
   async generateAccessToken(dto: TokenGenerationDto): Promise<{
     accessToken: string;
     userId: string;
-    expiresIn: number;
     message?: string;
   }> {
     const existingToken = await this.accessTokenModel.findOne({
@@ -29,18 +28,13 @@ export class AuthService {
       return {
         accessToken: existingToken.token,
         userId: dto.userId,
-        expiresIn: Math.floor(
-          (existingToken.expiresAt.getTime() - Date.now()) / 1000,
-        ),
         message: 'Existing valid token returned',
       };
     }
 
     const payload = { sub: dto.userId };
 
-    const accessToken = jwt.sign(payload, this.JWT_SECRET, {
-      expiresIn: '1h',
-    });
+    const accessToken = jwt.sign(payload, this.JWT_SECRET);
     const tokenEntity = new this.accessTokenModel({
       userId: dto.userId,
       token: accessToken,
@@ -53,7 +47,6 @@ export class AuthService {
     return {
       accessToken,
       userId: dto.userId,
-      expiresIn: 3600,
       message: 'New token generated successfully',
     };
   }
@@ -77,7 +70,6 @@ export class AuthService {
     const tokenData = await this.accessTokenModel
       .findOne({
         userId,
-        expiresAt: { $gt: new Date() },
       })
       .sort({ createdAt: -1 });
 
