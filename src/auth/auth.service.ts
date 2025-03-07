@@ -79,4 +79,18 @@ export class AuthService {
 
     return tokenData;
   }
+
+  async deleteAccessToken(userId: string): Promise<{ message: string }> {
+    try {
+      const result = await this.accessTokenModel.deleteMany({ userId });
+
+      if (result.deletedCount === 0) {
+        throw new NotFoundException('No access tokens found for this user');
+      }
+
+      return { message: 'Access tokens deleted successfully' };
+    } catch (error) {
+      throw error;
+    }
+  }
 }

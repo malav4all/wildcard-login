@@ -47,4 +47,23 @@ export class AuthController {
       );
     }
   }
+
+  @Post('deleteToken')
+  async deleteAccessToken(
+    @Body('userId') userId: string,
+  ): Promise<{ message: string }> {
+    try {
+      if (!userId) {
+        throw new NotFoundException('User ID is required');
+      }
+      return await this.authService.deleteAccessToken(userId);
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException(error.message);
+      }
+      throw new InternalServerErrorException(
+        'Something went wrong while deleting the token',
+      );
+    }
+  }
 }
